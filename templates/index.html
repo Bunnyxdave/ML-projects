@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fake News Detection System</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='styles.css') }}">
+    <link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css" rel="stylesheet">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <div class="header-section">
+            <button class="back-button" onclick="goBack()">
+                <i class="fas fa-arrow-left"></i>
+            </button>
+            <div class="header-content">
+                <h1>Fake News Detection</h1>
+                <p>AI-powered analysis to detect misinformation and fake news</p>
+            </div>
+        </div>
+
+        <div class="main-grid">
+            <!-- Left Column - Analysis Form -->
+            <div class="form-section">
+                <div class="form-card">
+                    <div class="card-header">
+                        <h2>News Authenticity Analysis</h2>
+                        <p>Enter news content to analyze for authenticity and potential misinformation</p>
+                    </div>
+
+                    <form id="analysisForm">
+                        <!-- News Headline -->
+                        <div class="form-group">
+                            <label for="headline">News Headline</label>
+                            <input type="text" id="headline" name="headline" placeholder="Enter the news headline to analyze...">
+                        </div>
+
+                        <!-- Article Content -->
+                        <div class="form-group">
+                            <label for="news_text">Article Content</label>
+                            <textarea id="news_text" name="news_text" rows="6" placeholder="Paste the full article content here..."></textarea>
+                        </div>
+
+                        <!-- News URL -->
+                        <div class="form-group">
+                            <label for="url">News URL (Optional)</label>
+                            <input type="url" id="url" name="url" placeholder="https://example.com/news-article">
+                        </div>
+
+                        <!-- Source/Publisher -->
+                        <div class="form-group">
+                            <label for="source">Source/Publisher</label>
+                            <input type="text" id="source" name="source" placeholder="News source or publisher name">
+                        </div>
+
+                        <!-- File Upload -->
+                        <div class="form-group">
+                            <label for="fileUpload">Upload File (Optional)</label>
+                            <div class="file-upload-area" id="fileUploadArea">
+                                <i class="fas fa-cloud-upload-alt"></i>
+                                <p>Drag and drop files here, or</p>
+                                <button type="button" class="browse-button" onclick="triggerFileInput()">Browse Files</button>
+                                <input type="file" id="fileInput" style="display: none;" accept=".txt,.pdf,.doc,.docx" onchange="handleFileSelect(event)">
+                            </div>
+                            <div id="fileInfo" class="file-info" style="display: none;"></div>
+                        </div>
+
+                        <!-- Analyze Button -->
+                        <button type="button" class="analyze-button" onclick="analyzeNews()" id="analyzeBtn">
+                            <i class="fas fa-search"></i> Analyze for Fraud
+                        </button>
+                    </form>
+                </div>
+            </div>
+
+            <!-- Right Column - Results -->
+            <div class="results-section">
+                <div class="results-card" id="resultsCard" style="display: none;">
+                    <div class="card-header">
+                        <h2>Analysis Results</h2>
+                        <p>Detailed breakdown of the news authenticity analysis</p>
+                    </div>
+
+                    <div class="results-content">
+                        <!-- Risk Score -->
+                        <div class="risk-score-section">
+                            <div class="risk-header">
+                                <h3>Overall Risk Assessment</h3>
+                                <div class="risk-badge" id="riskBadge">Low Risk</div>
+                            </div>
+                            <div class="score-display">
+                                <div class="score-circle">
+                                    <span id="riskScore">0</span>
+                                    <small>Risk Score</small>
+                                </div>
+                                <div class="confidence">
+                                    <span id="confidenceScore">0%</span>
+                                    <small>Confidence</small>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Classification -->
+                        <div class="classification-section">
+                            <h4>Classification</h4>
+                            <div class="classification-badge" id="classificationBadge">Legitimate</div>
+                        </div>
+
+                        <!-- Key Indicators -->
+                        <div class="indicators-section">
+                            <h4>Key Indicators</h4>
+                            <div class="indicators-list" id="indicatorsList"></div>
+                        </div>
+
+                        <!-- Analysis Details -->
+                        <div class="details-section">
+                            <h4>Detailed Analysis</h4>
+                            <div class="detail-item">
+                                <label>Source Credibility:</label>
+                                <span id="sourceCredibility">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Factual Accuracy:</label>
+                                <span id="factualAccuracy">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Emotional Indicators:</label>
+                                <span id="emotionalIndicators">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Verification Status:</label>
+                                <span id="verificationStatus">-</span>
+                            </div>
+                            <div class="detail-item">
+                                <label>Bias Indicators:</label>
+                                <span id="biasIndicators">-</span>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Empty State -->
+                <div class="empty-state" id="emptyState">
+                    <i class="fas fa-newspaper"></i>
+                    <h3>No Analysis Yet</h3>
+                    <p>Submit a news article to see the authenticity analysis results</p>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Loading Overlay -->
+    <div class="loading-overlay" id="loadingOverlay" style="display: none;">
+        <div class="loading-spinner"></div>
+        <p>Analyzing news content...</p>
+    </div>
+
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>

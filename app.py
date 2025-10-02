@@ -1,112 +1,107 @@
-from flask import Flask, request, jsonify
-from flask_cors import CORS
-import pandas as pd
-from model import FakeNewsDetector
+from flask import Flask, request, jsonify, render_template, send_from_directory
 import os
+import sys
 
-app = Flask(__name__)
-CORS(app)  # Enable CORS for all routes
+# Add parent directory to path to import model
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
+
+from model import AdvancedFakeNewsDetector
+
+app = Flask(__name__,
+            template_folder='templates',
+            static_folder='../frontend')
+app.config['SEND_FILE_MAX_AGE_DEFAULT'] = 0
 
 # Initialize detector
-detector = FakeNewsDetector()
+detector = AdvancedFakeNewsDetector()
 
 
 @app.route('/')
 def home():
-    return jsonify({
-        "message": "Fake News Detection API",
-        "status": "running",
-        "endpoints": {
-            "/train": "POST - Train the model",
-            "/predict": "POST - Predict if news is fake",
-            "/stats": "GET - Get model statistics"
-        }
-    })
-
-
-@app.route('/train', methods=['POST'])
-def train_model():
-    try:
-        data_path = 'data/fake_news_data.csv'
-
-        if not os.path.exists(data_path):
-            return jsonify({"error": "Training data not found"}), 400
-
-        accuracy = detector.train(data_path)
-        detector.save_model()
-
-        return jsonify({
-            "message": "Model trained successfully",
-            "accuracy": accuracy,
-            "status": "ready"
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
+    return render_template('index.html')
 
 
 @app.route('/predict', methods=['POST'])
 def predict():
     try:
         data = request.get_json()
+        text = data.get('text', '').strip()
 
-        if not data or 'text' not in data:
-            return jsonify({"error": "No text provided"}), 400
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
 
-        text = data['text']
         result = detector.predict(text)
 
         return jsonify({
-            "input_text": text,
-            "prediction": result
+            'success': True,
+            'result': result
         })
 
     except Exception as e:
-        return jsonify({"error": str(e)}), 500
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/analyze', methods=['POST'])
+def analyze():
+    try:
+        data = request.get_json()
+        text = data.get('text', '').strip()
+
+        if not text:
+            return jsonify({'error': 'No text provided'}), 400
+
+        analysis = detector.analyze_text_detailed(text)
+
+        return jsonify({
+            'success': True,
+            'analysis': analysis
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
+
+@app.route('/train', methods=['POST'])
+def train_model():
+    try:
+        data = request.get_json()
+        data_path = data.get('data_path', '../data/fake_news_data.csv')
+
+        if not os.path.exists(data_path):
+            return jsonify({'error': f'Data file not found: {data_path}'}), 400
+
+        accuracy = detector.train(data_path)
+        detector.save_model()
+
+        return jsonify({
+            'success': True,
+            'message': 'Model trained successfully',
+            'accuracy': accuracy,
+            'model_type': 'Advanced Fake News Detector'
+        })
+
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
 
 
 @app.route('/stats', methods=['GET'])
 def get_stats():
     return jsonify({
-        "model_trained": detector.is_trained,
-        "model_type": "Logistic Regression with TF-IDF",
-        "features": "Text analysis using NLP"
+        'model_trained': detector.is_trained,
+        'model_type': 'Advanced Fake News Detector',
+        'accuracy': detector.accuracy if detector.is_trained else 0,
+        'status': 'running'
     })
 
 
-@app.route('/batch_predict', methods=['POST'])
-def batch_predict():
-    try:
-        data = request.get_json()
-
-        if not data or 'texts' not in data:
-            return jsonify({"error": "No texts provided"}), 400
-
-        texts = data['texts']
-        results = []
-
-        for text in texts:
-            result = detector.predict(text)
-            results.append({
-                "text": text,
-                "prediction": result
-            })
-
-        return jsonify({
-            "predictions": results,
-            "total_processed": len(results)
-        })
-
-    except Exception as e:
-        return jsonify({"error": str(e)}), 500
-
-
 if __name__ == '__main__':
-    # Try to load pre-trained model
     try:
-        detector.load_model()
-        print("Pre-trained model loaded successfully!")
-    except:
-        print("No pre-trained model found. Please train the model first.")
+        detector.load_model('advanced_fake_news_model.joblib')
+        print("✅ Pre-trained model loaded successfully!")
+    except Exception as e:
+        print(f"⚠️ No pre-trained model found: {e}")
 
-    app.run(debug=True, port=5000)
+    print("🚀 Fake News Detection API Started!")
+    print("📍 Web Interface: http://localhost:5000")
+
+    app.run(debug=True, host='0.0.0.0', port=5000)
